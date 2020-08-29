@@ -1,0 +1,113 @@
+<script context="module">
+  export async function preload(page, session) {
+    if (session.user.role !== 'admin') {
+      this.redirect(302, `/`)
+    }
+  }
+</script>
+
+<script>
+  import * as api from "api"
+  import Message from "../../../components/Message.svelte"
+  import {stores} from '@sapper/app'
+  import {onMount} from 'svelte'
+
+  const {session, page} = stores()
+
+  let userId
+  let userEmail = ""
+  let userAvatar = ""
+  let userName = ""
+  let userRole = ""
+  let userWebsite = ""
+  let userLocation = ""
+  let userGender = ""
+  let memberSince
+  let isLoading = true
+  let message
+  let messageType
+
+  async function getUser() {
+    try {
+      const res = await api.user.getUser($page.params.id, {}, $session.user.token)
+      isLoading = false
+      userEmail = res.email
+      userAvatar = res.avatar
+      userRole = res.role
+      userName = res.profile.name
+      userWebsite = res.profile.website
+      userLocation = res.profile.location
+      userGender = res.profile.gender
+
+    } catch (err) {
+      isLoading = false;
+      return message = err.message;
+    }
+  }
+
+  onMount(() => {
+    getUser();
+  })
+
+  function closeMessage() {
+    message = null;
+  }
+
+</script>
+
+<section class="section">
+  {#if message}
+    <Message
+        message={message}
+        on:closeMessageEvent={closeMessage}
+        messageType={messageType}/>
+  {/if}
+
+  <div class="card profile">
+    <div class="card-header">
+      <h1 class="card-header-title">User Profile Info</h1>
+      <div class="card-header-icon">:::</div>
+    </div>
+    <div class="card-content">
+      {#if userName}<p><b>Name: </b> <span>{userName}</span></p>{/if}
+      <p><b>Email: </b> <span>{userEmail}</span></p>
+      {#if userGender}<p><b>Gender: </b> <span>{userGender}</span></p>{/if}
+      {#if userLocation}<p><b>Location: </b> <span>{userLocation}</span></p>{/if}
+      <p><b>Role: </b> <span class="capitalize">{userRole}</span></p>
+      {#if userWebsite}<p><b>Website: </b> <span>{userWebsite}</span></p>{/if}
+      <br>
+      <img class="center" src={userAvatar} alt="user image"/>
+    </div>
+  </div>
+</section>
+
+<style>
+  .capitalize {
+    text-transform: capitalize;
+  }
+
+  .center {
+    margin: 20px auto;
+    display: block;
+  }
+
+  .card-content p {
+    clear: both;
+  }
+
+  .card-content b {
+    text-align: left;
+    float: left;
+  }
+
+  .card-content span {
+    text-align: left;
+    float: right;
+  }
+
+  .profile {
+    width: 100%;
+    max-width: 360px;
+    margin: auto;
+  }
+</style>

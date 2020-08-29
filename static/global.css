@@ -1,0 +1,32 @@
+@import "./css/bulma.css";
+
+.primary-bg{
+  background-color: #2893DA;
+}
+
+.primary-color{
+  color: #2893DA
+}
+
+.site {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.site-content {
+  flex: 1;
+}
+
+.box-out {
+  display: flex;           /* establish flex container */
+  flex-direction: column;  /* make main axis vertical */
+  justify-content: center; /* center items vertically, in this case */
+  align-items: center;     /* center items horizontally, in this case */
+  height: auto;
+}
+
+.box-in {
+  width: 100%;
+  margin: 5px;
+}
