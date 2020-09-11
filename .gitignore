@@ -6,4 +6,4 @@ yarn-error.log
 /.sessions/
 /__sapper__/
 .env
-.idea
+/.idea/
