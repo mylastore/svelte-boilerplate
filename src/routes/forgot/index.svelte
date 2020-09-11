@@ -1,6 +1,6 @@
 <script>
   import {validateRequired, validateEmail} from "@lib/validation";
-  import TextInput from "../../components/Ui/TextInput.svelte";
+  import TextInput from "../../components/ui/TextInput.svelte";
   import Message from "../../components/Message.svelte";
   import * as api from "api";
 

@@ -1,12 +1,14 @@
 <script>
     import {goto, stores} from '@sapper/app'
     import axios from 'axios'
+    import {onMount} from 'svelte'
 
     export let segment;
 
     let isActive = false
     let message
     let messageType
+    let links = []
 
     const {session} = stores()
     const companyName = process.env.COMPANY_NAME
@@ -20,6 +22,14 @@
         $session.user = null
         goto(`/`)
     }
+
+    onMount(()=>{
+        document.querySelectorAll('.navbar-item')
+            .forEach(link => link.addEventListener('click', ()=> {
+                toggleNav()
+            }))
+    })
+
 </script>
 
 <nav class="navbar is-info" role="navigation" aria-label="main navigation">
