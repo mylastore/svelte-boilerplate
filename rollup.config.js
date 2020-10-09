@@ -63,8 +63,9 @@ export default {
 				module: true
 			})
 		],
-
-		onwarn,
+		onwarn: function ( message ) {
+			if ( /external dependency/.test( message ) ) return false;
+		}
 	},
 
 	server: {
@@ -90,8 +91,9 @@ export default {
 		external: Object.keys(pkg.dependencies).concat(
 			require('module').builtinModules || Object.keys(process.binding('natives'))
 		),
-
-		onwarn,
+		onwarn: function ( message ) {
+			if ( /external dependency/.test( message ) ) return false;
+		}
 	},
 
 	serviceworker: {
@@ -108,7 +110,8 @@ export default {
 			commonjs(),
 			!dev && terser()
 		],
-
-		onwarn,
+		onwarn: function ( message ) {
+			if ( /external dependency/.test( message ) ) return false;
+		}
 	}
 };
