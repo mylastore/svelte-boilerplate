@@ -6,7 +6,7 @@
   }
 </script>
 <script>
-  import {formatDate} from '@lib/utils'
+  import timeAgo from '@lib/timeAgo'
   import * as api from 'api'
   import Message from '../../components/Message.svelte'
   import axios from 'axios'
@@ -16,43 +16,53 @@
   } from '@lib/validation'
   import TextInput from '../../components/ui/TextInput.svelte'
   import LoadingSpinner from '../../components/ui/LoadingSpinner.svelte'
-  import {goto, stores} from '@sapper/app'
 
+  import {goto, stores} from '@sapper/app'
   const {session} = stores()
 
-  let isLoading = true
-  let unsubscribe
-  let memberSince
-  let currentUser
-  let userId
-  let message
-  let messageType = 'warning'
+  let role = ''
+  let _id
+  let avatar = ''
   let email = ''
   let name = ''
+  let username
   let location = ''
   let website = ''
   let gender = ''
   let password = ''
-  let passwordConfirmation = '';
+  let passwordConfirmation = ''
+  let about = ''
+  let createdAt
+
+  let unsubscribe
+  let message
+  let messageType = 'warning'
+    let isLoading = false;
+
 
   (async () => {
-    currentUser = await api.user.getProfile({}, $session.user.token)
-    if (currentUser) {
+    try{
+      isLoading = true
+      const res = await api.user.getProfile({}, $session.user.token)
+      if(res){
+        isLoading = false
+        username = res.username
+        email = res.email
+        name = res.name
+        gender = res.gender
+        website = res.website
+        location = res.location
+        role = res.role
+        avatar = res.avatar
+        createdAt = timeAgo(res.createdAt)
+        _id = res._id
+      }
+    }catch (err){
       isLoading = false
-      email = currentUser.email
-      name = currentUser.profile.name || ''
-      gender = currentUser.profile.gender || ''
-      website = currentUser.profile.website || ''
-      location = currentUser.profile.location || ''
-      memberSince = formatDate(currentUser.memberSince)
-      userId = currentUser._id
+      messageType = 'warning'
+      return message = err.message
     }
-
-  })().catch(err => {
-    isLoading = false
-    messageType = 'warning'
-    return message = err.message
-  });
+  })()
 
   $: emailValid = validateEmail(email)
   $: formIsValid = emailValid
@@ -64,19 +74,22 @@
   async function updateUser() {
     try {
       const userObject = {
-        profile: {
-          name: name,
-          website: website,
-          location: location,
-          gender: gender,
-        },
-        email: email,
-        id: userId,
+        name,
+        website,
+        location,
+        gender,
+        _id,
+        username,
+        about,
       }
-      currentUser = await api.user.update(userObject, $session.user.token)
-      messageType = 'success'
-      message = 'User profile was updated successfully!'
-      return window.scrollTo(0, 0)
+      const res = await api.user.update($session.user.username, userObject, $session.user.token)
+      if(res){
+        isLoading = 'false'
+        $session.user = res
+        messageType = 'success'
+        message = 'User profile was updated successfully!'
+        return window.scrollTo(0, 0)
+      }
 
     } catch (err) {
       isLoading = 'false'
@@ -91,7 +104,7 @@
     )
     if (result) {
       try {
-        const res = await api.user.deleteUser({id: userId}, $session.user.token)
+        const res = await api.user.deleteUser({_id: _id}, $session.user.token)
         window.scrollTo(0, 0)
         messageType = 'success'
         message = res
@@ -112,7 +125,7 @@
     try{
       const passwordForm = document.getElementById('password-reset-form')
       const userObject = {
-        id: userId,
+        _id: _id,
         password: password
       }
       const res = await api.user.passwordUpdate(userObject, $session.user.token)
@@ -148,7 +161,7 @@
     {#if message}
       <Message {message} {messageType} on:closeMessageEvent={closeMessage}/>
     {/if}
-    {#if currentUser}
+    {#if $session.user}
       <div class="columns">
         <div class="column is-half">
           <div class="card profile is-clearfix">
@@ -158,10 +171,10 @@
             </header>
             <div class="card-image">
               <figure class="image is-4by3">
-                {#if currentUser.avatar}
+                {#if $session.user.avatar}
                   <img
                       class="default-img"
-                      src={currentUser.avatar}
+                      src={$session.user.avatar}
                       alt="User Image"/>
                 {:else}
                   <img
@@ -182,7 +195,7 @@
                   {/if}
                   <p class="is-6">
                     <strong>Email:</strong>
-                    {currentUser.email}
+                    {email}
                   </p>
                   {#if website}
                     <p class="is-4">
@@ -204,10 +217,10 @@
                   {/if}
                   <div class="member-since">
                     <strong>Member Since:</strong>
-                    <time>{memberSince}</time>
+                    <time>{createdAt}</time>
                     <br/>
                     <strong>Role:</strong>
-                    <span class="capitalize">{currentUser.role}</span>
+                    <span class="capitalize">{role}</span>
                   </div>
                 </div>
               </div>
@@ -216,12 +229,24 @@
         </div>
         <div class="column is-half">
           <div class="content center-form">
+
             <form class="card edit-user-form">
               <TextInput
+                      id="username"
+                      label="Username"
+                      value={username}
+                      on:input={event => (username = event.target.value)}/>
+              <TextInput
                   id="name"
-                  label="Username or Nickname"
+                  label="Name"
                   value={name}
                   on:input={event => (name = event.target.value)}/>
+              <div class="field">
+                <label for="email">Email</label>
+                <input class="input" id="email" type="email" value="{email}" disabled>
+                <p class="help">Email can not be updated.</p>
+              </div>
+
               <TextInput
                   id="email"
                   label="Email"
@@ -229,6 +254,11 @@
                   validityMessage="Please enter a valid email."
                   value={email}
                   on:input={event => (email = event.target.value)}/>
+              <TextInput
+                      id="about"
+                      label="About"
+                      value={about}
+                      on:input={event => (about = event.target.value)}/>
               <TextInput
                   id="website"
                   label="Website"
@@ -239,6 +269,7 @@
                   label="Location"
                   value={location}
                   on:input={event => (location = event.target.value)}/>
+
               <div class="field is-horizontal">
                 <div class="field-label">
                   <label class="label">Gender</label>

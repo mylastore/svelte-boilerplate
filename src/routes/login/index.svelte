@@ -32,7 +32,7 @@
       if(res.data.role === 'admin'){
         return goto('/admin')
       }
-      goto('/profile')
+      goto(`/profile/${$session.user.username}`)
     } catch (err) {
       messageType = 'warning'
       if(err.response.status === 503){
