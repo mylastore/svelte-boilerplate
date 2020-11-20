@@ -17,13 +17,19 @@
   async function submitForm() {
     try {
       const res = await api('POST', 'user/login', user)
-      message = null
-      user = {email: '', password: ''}
+      if (res && res.status >= 400) {
+        throw new Error(res.message)
+      }
+      if(res){
+        message = null
+        user = {email: '', password: ''}
+        await authenticate(res, () => {
+          return window.location.href=`/profile/${res.username}`
+        })
+      }
 
-      await authenticate(res, () => {
-        return window.location.href=`/profile/${res.username}`
-      })
     } catch (err) {
+      console.log('err? ',err)
       messageType = 'warning'
       return  message = err.message
      }

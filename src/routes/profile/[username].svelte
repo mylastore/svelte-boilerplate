@@ -2,12 +2,11 @@
   import timeAgo from '@lib/timeAgo'
   import Message from '../../components/Message.svelte'
   import {api} from '@lib/api'
-  import { validateEmail, validatePassword } from '@lib/validation'
+  import {validateEmail, validatePassword} from '@lib/validation'
   import TextInput from '../../components/ui/TextInput.svelte'
   import LoadingSpinner from '../../components/ui/LoadingSpinner.svelte'
   import {onMount} from 'svelte'
-  import {goto} from '@sapper/app'
-  import {getCookie, logout} from '@lib/auth'
+  import {getCookie, userLogout, isAuth, authenticate} from '@lib/auth'
 
   let role = ''
   let _id
@@ -27,25 +26,33 @@
   let message
   let messageType = 'warning'
   let isLoading = true;
+  let serverError = false
 
-  onMount(()=>{
+  onMount(() => {
     (async () => {
       try {
         const res = await api('POST', 'user/account', {}, getCookie('token'))
-        if (res) {
-          isLoading = false
-          username = res.username
-          email = res.email
-          name = res.name
-          gender = res.gender
-          website = res.website
-          location = res.location
-          role = res.role
-          avatar = res.avatar
-          about = res.about
-          createdAt = timeAgo(res.createdAt)
-          _id = res._id
+        if (res && res.status >= 400) {
+          if (res.status === 502) {
+            serverError = true
+          }
+          throw new Error(res.message)
         }
+        await authenticate(res, () => {
+        })
+        isLoading = false
+        username = res.username
+        email = res.email
+        name = res.name
+        gender = res.gender
+        website = res.website
+        location = res.location
+        role = res.role
+        avatar = res.avatar
+        about = res.about
+        createdAt = timeAgo(res.createdAt)
+        _id = res._id
+
       } catch (err) {
         isLoading = false
         messageType = 'warning'
@@ -73,14 +80,19 @@
         username,
         about,
       }
-      const res = await api('PATCH', `user/account/${username}`, userObject, getCookie('token'))
+      const res = await api('PATCH', `user/account/${isAuth().username}`, userObject, getCookie('token'))
+      if (res && res.status >= 400) {
+        if (res.status === 502) {
+          serverError = true
+        }
+        throw new Error(res.message)
+      }
       if (res) {
         messageType = 'success'
         message = 'User profile was updated successfully!'
         isLoading = false
         return window.scrollTo(0, 0)
       }
-
     } catch (err) {
       isLoading = false
       messageType = 'warning'
@@ -94,19 +106,9 @@
     )
     if (result) {
       try {
-        isLoading = true
-        const res = await api('POST', 'user/delete', {_id: _id}, getCookie('token'))
-        window.scrollTo(0, 0)
-        messageType = 'success'
-        message = res
-        return setTimeout(async function () {
-          const res = await api('POST', 'user/logout', {})
-          if (res) {
-            isLoading = false
-            logout()
-            return goto(`/`)
-          }
-        }, 1500)
+        await api('POST', 'user/delete', {_id: _id}, getCookie('token'))
+        await userLogout()
+        return window.location.href = "/"
       } catch (err) {
         isLoading = false
         messageType = 'warning'
@@ -119,18 +121,26 @@
     try {
       const passwordForm = document.getElementById('password-reset-form')
       const userObject = {
-        _id: _id,
-        password: password
+        _id,
+        password
       }
-      const res = await api.user.passwordUpdate(userObject, getCookie('token'))
+      const res = await api('POST', 'user/update-password', userObject, getCookie('token'))
+      if (res && res.status >= 400) {
+        if (res.status === 502) {
+          serverError = true
+        }
+        return window.scrollTo(0, 0)
+        throw new Error(res.message)
+      }
       window.scrollTo(0, 0)
       passwordForm.reset()
       messageType = 'success'
-      return message = res
+      return message = "Password updated successfully!"
     } catch (err) {
       isLoading = 'false'
       messageType = 'warning'
-      return message = err
+      window.scrollTo(0, 0)
+      return message = err.message
     }
   }
 
@@ -139,7 +149,6 @@
   }
 
 </script>
-
 
 <svelte:head>
   <title>Profile Page</title>
@@ -155,7 +164,7 @@
     {#if message}
       <Message {message} {messageType} on:closeMessageEvent={closeMessage}/>
     {/if}
-    {#if getCookie('token')}
+    {#if getCookie('token') && !serverError}
       <div class="columns">
         <div class="column is-half">
           <div class="card profile is-clearfix">
@@ -165,17 +174,11 @@
             </header>
             <div class="card-image">
               <figure class="image is-4by3">
-                {#if avatar}
-                  <img
-                      class="default-img"
-                      src={avatar}
-                      alt="User Image"/>
-                {:else}
-                  <img
-                      class="default-img"
-                      src='img/default-image.jpg'
-                      alt="User Image"/>
-                {/if}
+                <img
+                    class="default-img"
+                    src={avatar}
+                    alt="User Image"/>
+                <div class="username">@{username}</div>
               </figure>
             </div>
             <div class="card-content">
@@ -321,7 +324,8 @@
                   validityMessage="Passwords did not match"
                   value={passwordConfirmation}
                   on:input={event => (passwordConfirmation = event.target.value)}/>
-              <p class="help">Password minimum characters length 8, must have 1 capital letter, 1 number and 1 special
+              <p class="help">Password minimum characters length 8, must have 1 capital letter, 1 number
+                and 1 special
                 character.</p>
               <button
                   class="button is-pulled-right is-primary"
@@ -354,6 +358,10 @@
 </section>
 
 <style>
+    .username {
+        text-align: center;
+    }
+
     .capitalize {
         text-transform: capitalize;
     }

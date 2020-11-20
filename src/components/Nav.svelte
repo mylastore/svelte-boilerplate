@@ -2,8 +2,7 @@
   import {isAuth, getCookie} from "@lib/auth"
   import {api} from '@lib/api'
   import {onMount} from 'svelte'
-  import {logout} from '@lib/auth'
-  import {goto} from '@sapper/app'
+  import {userLogout} from '@lib/auth'
 
   export let segment
 
@@ -19,7 +18,8 @@
 
   const companyName = process.env.COMPANY_NAME
 
-  if(isAuthorized){
+  console.log(isAuthorized)
+  if (isAuthorized) {
     name = isAuth().name
     email = isAuth().email
     role = isAuth().role
@@ -33,8 +33,8 @@
   async function logOut() {
     const res = await api('POST', 'user/logout', {})
     if (res) {
-      await logout()
-      return window.location.href="/";
+      await userLogout()
+      return window.location.href = "/";
     }
   }
 
@@ -72,7 +72,7 @@
           <div class="navbar-item has-dropdown is-hoverable">
             <a class="navbar-link">
 
-                {name}
+              {name}
 
             </a>
             <div class="navbar-dropdown is-right">
