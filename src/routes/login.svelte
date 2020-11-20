@@ -6,65 +6,90 @@
   }
 </script>
 <script>
-  import {goto, stores} from '@sapper/app'
-  import axios from 'axios'
-  import Message from '../../components/Message.svelte'
-  import TextInput from '../../components/ui/TextInput.svelte'
-  import {validateRequired, validateEmail, validatePassword} from '@lib/validation.js'
-
+  import Message from '../components/Message.svelte'
+  import TextInput from '../components/ui/TextInput.svelte'
+  import {api} from '@lib/api'
+  import {validateEmail, validatePassword} from '@lib/validation.js'
+  import {stores} from '@sapper/app'
   const {session} = stores()
+  import fetch from "isomorphic-fetch";
 
-  let user = {email: '', password: ''}
-  let passwordConfirmation = ''
+  let email = "me@me.com"
+  let password = "Password#1"
   let message
   let messageType
+  let keyCode
 
-  $: emailValid = validateEmail(user.email)
-  $: passwordValid = validatePassword(user.password)
-  $: passwordConfirmValid = user.password === passwordConfirmation
-  $: formIsValid = emailValid && passwordValid && passwordConfirmValid
+  $: emailValid = validateEmail(email)
+  $: passwordValid = validatePassword(password)
+  $: formIsValid = emailValid && passwordValid
 
   async function submitForm() {
     try {
-      const response = await axios.post('/user/register', user)
-      $session.user = response.data
-      message = null
-      user = {username: '', password: ''}
-      goto('/profile')
+      const response = await fetch("/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const res = await response.json();
+
+      if (res && res.status >= 400) {
+        throw new Error(res.message)
+      }
+        $session.user = res
+        message = null
+       email = ''
+       password = ''
+      return window.location.href=`/profile/${res.username}`
 
     } catch (err) {
       messageType = 'warning'
-      if(err.response.status === 503){
-        return message = 'Network Connection Error, Please try again later.'
-      }
-      return  message = err.response.data.message
-    }
-  }
-
-  function handleKeyDown(event) {
-    if (formIsValid && event.keyCode === 13) {
-      submitForm()
-    }
+      return  message = err.message
+     }
   }
 
   function closeMessage() {
     message = null
+  }
+
+  function handleKeyDown(event) {
+    event.stopPropagation()
+    if (event.keyCode === 13) {
+      submitForm()
+    }
   }
 </script>
 
 <svelte:window on:keydown={handleKeyDown}/>
 
 <svelte:head>
-  <title>Register</title>
+  <title>Login</title>
 </svelte:head>
 
 <section class="section">
   <div class="container">
     <div class="column is-8 is-offset-2">
+      <article class="message is-info">
+        <div class="message-header">
+          <p>Test Users</p>
+       </div>
+        <div class="message-body">
+          <h3><strong>Admin:</strong> me@me.com Password#1</h3>
+          <h3><strong>Customer:</strong> me1@me.com Password#1</h3>
+        </div>
+      </article>
+
+
+      <br>
       <div class="card la-card">
-        <div class="card-content clearfix">
-          <h2 class="la-headline primary-color">REGISTER</h2>
-          <p class="is-centered">We're happy you're here!</p>
+        <div class="card-content clearfixed">
+          <h2 class="la-headline primary-color">HI, THERE</h2>
+          <p class="is-centered">
+            You can log in to your My LA Store account here.
+          </p>
           <div class="is-centered">
           </div>
           <div class="la-divider">
@@ -76,43 +101,40 @@
             <Message message={message} messageType={messageType} on:closeMessageEvent={closeMessage}/>
           {/if}
           <form>
-            <TextInput
+              <TextInput
                 id="email"
                 label="Email"
                 valid={emailValid}
                 validityMessage="Please enter a valid email."
-                value={user.email}
+                value={email}
                 className="is-large"
-                on:input={event => (user.email = event.target.value)}/>
+                on:input={event => (email = event.target.value)}/>
             <TextInput
                 id="password"
                 label="Password"
                 type="password"
                 valid={passwordValid}
                 validityMessage="Please enter a valid password."
-                value={user.password}
+                value={password}
                 className="is-large"
-                on:input={event => (user.password = event.target.value)}/>
-            <TextInput
-                id="passwordConfirmation"
-                label="Password Confirmation"
-                type="password"
-                valid={passwordConfirmValid}
-                validityMessage="Passwords did not match"
-                value={passwordConfirmation}
-                className="is-large"
-                on:input={event => (passwordConfirmation = event.target.value)}/>
-            <p class="help">Password minimum length 8, must have 1 capital letter, 1 number and 1 special character.</p>
-            <button
-                class="button is-success is-pulled-right"
-                on:click|preventDefault={submitForm}
-                disabled={!formIsValid}>
-              Register
-            </button>
+                on:input={event => (password = event.target.value)}/>
+            <p class="help">Password minimum length 8, must have 1 capital letter, 1 number and 1 special
+              character.</p>
           </form>
+          <div class="clearfixed is-center">
+            <a href="/forgot">Forgot Password?</a>
+          </div>
+          <button
+              class="button is-success is-pulled-right"
+              on:click|preventDefault={submitForm}
+              disabled={!formIsValid}>
+            Login
+          </button>
         </div>
         <footer class="card-footer primary-bg">
-          <a href="login" class="card-footer-item">Already have an account?</a>
+          <a href="register" class="card-footer-item">
+            Don't have an account?
+          </a>
         </footer>
       </div>
     </div>
@@ -125,8 +147,18 @@
     color: #f0f0f0f0
   }
 
+  .is-center {
+    text-align: center;
+    display: block;
+    margin: 20px 0;
+  }
+
+  button {
+    padding-right: 60px;
+    padding-left: 60px;
+  }
+
   .card-footer {
-    margin-top: 5px;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
   }
@@ -185,7 +217,7 @@
     text-transform: uppercase;
   }
 
-  .clearfix:after {
+  .clearfixed:after {
     visibility: hidden;
     display: block;
     font-size: 0;

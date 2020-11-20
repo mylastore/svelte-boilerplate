@@ -1,16 +1,16 @@
 <script>
-  import {isAuth, getCookie} from "@lib/auth"
-  import {api} from '@lib/api'
+  import fetch from "isomorphic-fetch";
   import {onMount} from 'svelte'
-  import {userLogout} from '@lib/auth'
+  import {stores} from '@sapper/app'
+  const {session} = stores()
 
   export let segment
 
-  let isAuthorized = getCookie('token')
   let isActive = false
   let message
   let messageType
   let links = []
+
   let name
   let email
   let role
@@ -18,12 +18,11 @@
 
   const companyName = process.env.COMPANY_NAME
 
-  console.log(isAuthorized)
-  if (isAuthorized) {
-    name = isAuth().name
-    email = isAuth().email
-    role = isAuth().role
-    username = isAuth().username
+  if($session.user){
+    name = $session.user.name
+    email = $session.user.email
+    role = $session.user.role
+    username = $session.user.username
   }
 
   function toggleNav() {
@@ -31,9 +30,15 @@
   }
 
   async function logOut() {
-    const res = await api('POST', 'user/logout', {})
+    const res = await fetch("/user/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      }
+    })
     if (res) {
-      await userLogout()
+      $session.user = null
       return window.location.href = "/";
     }
   }
@@ -68,12 +73,10 @@
         </a>
       </div>
       <div class="navbar-end">
-        {#if isAuthorized }
+        {#if $session.user}
           <div class="navbar-item has-dropdown is-hoverable">
             <a class="navbar-link">
-
-              {name}
-
+              {username}
             </a>
             <div class="navbar-dropdown is-right">
               <a class="navbar-item" href="/profile/{username}">
@@ -108,5 +111,4 @@
       </div>
     </div>
   </div>
-
 </nav>

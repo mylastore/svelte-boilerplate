@@ -1,3 +1,11 @@
+<script context="module">
+  export function preload(page, session) {
+    if (!session.user) {
+      this.redirect(302, `/`)
+    }
+  }
+</script>
+
 <script>
   import timeAgo from '@lib/timeAgo'
   import Message from '../../components/Message.svelte'
@@ -5,8 +13,9 @@
   import {validateEmail, validatePassword} from '@lib/validation'
   import TextInput from '../../components/ui/TextInput.svelte'
   import LoadingSpinner from '../../components/ui/LoadingSpinner.svelte'
-  import {onMount} from 'svelte'
   import {getCookie, userLogout, isAuth, authenticate} from '@lib/auth'
+  import {stores} from '@sapper/app'
+  const {session} = stores()
 
   let role = ''
   let _id
@@ -25,41 +34,38 @@
   let unsubscribe
   let message
   let messageType = 'warning'
-  let isLoading = true;
-  let serverError = false
+  let isLoading = true
+  let serverError = false;
 
-  onMount(() => {
-    (async () => {
-      try {
-        const res = await api('POST', 'user/account', {}, getCookie('token'))
-        if (res && res.status >= 400) {
-          if (res.status === 502) {
-            serverError = true
-          }
-          throw new Error(res.message)
+  (async () => {
+    try {
+      const res = await api('POST', 'user/account', {}, $session.user.token)
+      if (res && res.status >= 400) {
+        if (res.status === 502) {
+          serverError = true
         }
-        await authenticate(res, () => {
-        })
-        isLoading = false
-        username = res.username
-        email = res.email
-        name = res.name
-        gender = res.gender
-        website = res.website
-        location = res.location
-        role = res.role
-        avatar = res.avatar
-        about = res.about
-        createdAt = timeAgo(res.createdAt)
-        _id = res._id
-
-      } catch (err) {
-        isLoading = false
-        messageType = 'warning'
-        return message = err.message
+        throw new Error(res.message)
       }
-    })()
-  })
+      $session.user = res
+      isLoading = false
+      username = res.username
+      email = res.email
+      name = res.name
+      gender = res.gender
+      website = res.website
+      location = res.location
+      role = res.role
+      avatar = res.avatar
+      about = res.about
+      createdAt = timeAgo(res.createdAt)
+      _id = res._id
+
+    } catch (err) {
+      isLoading = false
+      messageType = 'warning'
+      return message = err.message
+    }
+  })()
 
   $: emailValid = validateEmail(email)
   $: formIsValid = emailValid
@@ -164,7 +170,7 @@
     {#if message}
       <Message {message} {messageType} on:closeMessageEvent={closeMessage}/>
     {/if}
-    {#if getCookie('token') && !serverError}
+    {#if $session.user && !serverError}
       <div class="columns">
         <div class="column is-half">
           <div class="card profile is-clearfix">

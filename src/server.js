@@ -1,24 +1,23 @@
 import sirv from 'sirv';
-import helmet from 'helmet';
+import polka from 'polka'
 import compression from 'compression';
 import * as sapper from '@sapper/server';
 import session from 'express-session'
 import sessionFileStore from 'session-file-store'
-import {json} from 'body-parser'
-import polka from 'polka'
+import bodyParser from 'body-parser'
 
 const FileStore = sessionFileStore(session)
 
 const {PORT, NODE_ENV} = process.env
 const dev = NODE_ENV === 'development'
-const secretKey = process.env.SECRET_KEY
+const secret = process.env.SESSION_SECRET
 
 polka()
   .use(
-    json(),
+    bodyParser.json(),
     session({
-      secret: secretKey,
-      resave: true,
+      secret: secret,
+      resave: false,
       saveUninitialized: true,
       cookie: {
         maxAge: 3600000 // 1hr
@@ -27,21 +26,13 @@ polka()
         path: '.sessions'
       })
     }),
-    // helmet({
-    //     directives: {
-    //         defaultSrc: [`'self'`],
-    //         reportUri: `/api/csp/report`
-    //     },
-    //     contentSecurityPolicy: {
-    //         reportOnly: true
-    //     }
-    // }),
     compression({threshold: 0}),
     sirv('static', {dev}),
     sapper.middleware({
-      session: req => ({
-        user: req.session && req.session.user,
-      })
+      session: (req, res) => {
+        return ({
+          user: req.session.user
+        })}
     })
   )
   .listen(PORT, err => {
