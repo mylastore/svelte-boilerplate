@@ -1,31 +1,20 @@
-<script context="module">
-  export async function preload(page, session) {
-    if (!session.user) {
-      this.redirect(302, `/`)
-    }
-  }
-</script>
 <script>
   import timeAgo from '@lib/timeAgo'
-  import * as api from 'api'
   import Message from '../../components/Message.svelte'
-  import axios from 'axios'
-  import {
-    validateEmail,
-    validatePassword,
-  } from '@lib/validation'
+  import {api} from '@lib/api'
+  import { validateEmail, validatePassword } from '@lib/validation'
   import TextInput from '../../components/ui/TextInput.svelte'
   import LoadingSpinner from '../../components/ui/LoadingSpinner.svelte'
-
-  import {goto, stores} from '@sapper/app'
-  const {session} = stores()
+  import {onMount} from 'svelte'
+  import {goto} from '@sapper/app'
+  import {getCookie, logout} from '@lib/auth'
 
   let role = ''
   let _id
   let avatar = ''
   let email = ''
   let name = ''
-  let username
+  let username = ''
   let location = ''
   let website = ''
   let gender = ''
@@ -37,32 +26,33 @@
   let unsubscribe
   let message
   let messageType = 'warning'
-    let isLoading = false;
+  let isLoading = true;
 
-
-  (async () => {
-    try{
-      isLoading = true
-      const res = await api.user.getProfile({}, $session.user.token)
-      if(res){
+  onMount(()=>{
+    (async () => {
+      try {
+        const res = await api('POST', 'user/account', {}, getCookie('token'))
+        if (res) {
+          isLoading = false
+          username = res.username
+          email = res.email
+          name = res.name
+          gender = res.gender
+          website = res.website
+          location = res.location
+          role = res.role
+          avatar = res.avatar
+          about = res.about
+          createdAt = timeAgo(res.createdAt)
+          _id = res._id
+        }
+      } catch (err) {
         isLoading = false
-        username = res.username
-        email = res.email
-        name = res.name
-        gender = res.gender
-        website = res.website
-        location = res.location
-        role = res.role
-        avatar = res.avatar
-        createdAt = timeAgo(res.createdAt)
-        _id = res._id
+        messageType = 'warning'
+        return message = err.message
       }
-    }catch (err){
-      isLoading = false
-      messageType = 'warning'
-      return message = err.message
-    }
-  })()
+    })()
+  })
 
   $: emailValid = validateEmail(email)
   $: formIsValid = emailValid
@@ -73,6 +63,7 @@
 
   async function updateUser() {
     try {
+      isLoading = true
       const userObject = {
         name,
         website,
@@ -82,19 +73,18 @@
         username,
         about,
       }
-      const res = await api.user.update($session.user.username, userObject, $session.user.token)
-      if(res){
-        isLoading = 'false'
-        $session.user = res
+      const res = await api('PATCH', `user/account/${username}`, userObject, getCookie('token'))
+      if (res) {
         messageType = 'success'
         message = 'User profile was updated successfully!'
+        isLoading = false
         return window.scrollTo(0, 0)
       }
 
     } catch (err) {
-      isLoading = 'false'
+      isLoading = false
       messageType = 'warning'
-      return message = err
+      return message = err.message
     }
   }
 
@@ -104,36 +94,40 @@
     )
     if (result) {
       try {
-        const res = await api.user.deleteUser({_id: _id}, $session.user.token)
+        isLoading = true
+        const res = await api('POST', 'user/delete', {_id: _id}, getCookie('token'))
         window.scrollTo(0, 0)
         messageType = 'success'
         message = res
-        return setTimeout(function () {
-          axios.post('/user/logout')
-          $session.user = null
-          goto(`/`)
+        return setTimeout(async function () {
+          const res = await api('POST', 'user/logout', {})
+          if (res) {
+            isLoading = false
+            logout()
+            return goto(`/`)
+          }
         }, 1500)
       } catch (err) {
-        isLoading = 'false'
+        isLoading = false
         messageType = 'warning'
-        return message = err
+        return message = err.message
       }
     }
   }
 
   async function updatePassword() {
-    try{
+    try {
       const passwordForm = document.getElementById('password-reset-form')
       const userObject = {
         _id: _id,
         password: password
       }
-      const res = await api.user.passwordUpdate(userObject, $session.user.token)
+      const res = await api.user.passwordUpdate(userObject, getCookie('token'))
       window.scrollTo(0, 0)
       passwordForm.reset()
       messageType = 'success'
       return message = res
-    }catch (err){
+    } catch (err) {
       isLoading = 'false'
       messageType = 'warning'
       return message = err
@@ -153,7 +147,7 @@
 </svelte:head>
 
 {#if isLoading}
-  <LoadingSpinner />
+  <LoadingSpinner/>
 {/if}
 
 <section class="section">
@@ -161,7 +155,7 @@
     {#if message}
       <Message {message} {messageType} on:closeMessageEvent={closeMessage}/>
     {/if}
-    {#if $session.user}
+    {#if getCookie('token')}
       <div class="columns">
         <div class="column is-half">
           <div class="card profile is-clearfix">
@@ -171,10 +165,10 @@
             </header>
             <div class="card-image">
               <figure class="image is-4by3">
-                {#if $session.user.avatar}
+                {#if avatar}
                   <img
                       class="default-img"
-                      src={$session.user.avatar}
+                      src={avatar}
                       alt="User Image"/>
                 {:else}
                   <img
@@ -232,10 +226,10 @@
 
             <form class="card edit-user-form">
               <TextInput
-                      id="username"
-                      label="Username"
-                      value={username}
-                      on:input={event => (username = event.target.value)}/>
+                  id="username"
+                  label="Username"
+                  value={username}
+                  on:input={event => (username = event.target.value)}/>
               <TextInput
                   id="name"
                   label="Name"
@@ -255,10 +249,10 @@
                   value={email}
                   on:input={event => (email = event.target.value)}/>
               <TextInput
-                      id="about"
-                      label="About"
-                      value={about}
-                      on:input={event => (about = event.target.value)}/>
+                  id="about"
+                  label="About"
+                  value={about}
+                  on:input={event => (about = event.target.value)}/>
               <TextInput
                   id="website"
                   label="Website"
@@ -360,48 +354,48 @@
 </section>
 
 <style>
-  .capitalize {
-    text-transform: capitalize;
-  }
+    .capitalize {
+        text-transform: capitalize;
+    }
 
-  .card .field-label {
-    flex-grow: 0;
-    flex-shrink: 0;
-    margin-right: 1rem;
-    text-align: left;
-  }
+    .card .field-label {
+        flex-grow: 0;
+        flex-shrink: 0;
+        margin-right: 1rem;
+        text-align: left;
+    }
 
-  .member-since {
-    color: gray;
-    font-size: 12px;
-    margin-top: 2em;
-  }
+    .member-since {
+        color: gray;
+        font-size: 12px;
+        margin-top: 2em;
+    }
 
-  .member-since strong {
-    color: gray;
-  }
+    .member-since strong {
+        color: gray;
+    }
 
-  .center-form {
-    max-width: 600px;
-  }
+    .center-form {
+        max-width: 600px;
+    }
 
-  .center-form form {
-    padding: 2em 2em 5em 2em;
-  }
+    .center-form form {
+        padding: 2em 2em 5em 2em;
+    }
 
-  .profile {
-    max-width: 360px;
-    width: 360px;
-    margin: auto;
-  }
+    .profile {
+        max-width: 360px;
+        width: 360px;
+        margin: auto;
+    }
 
-  img.default-img {
-    width: 150px;
-    height: 150px;
-    margin: auto;
-  }
+    img.default-img {
+        width: 150px;
+        height: 150px;
+        margin: auto;
+    }
 
-  .edit-user-form {
-    margin-bottom: 60px;
-  }
+    .edit-user-form {
+        margin-bottom: 60px;
+    }
 </style>

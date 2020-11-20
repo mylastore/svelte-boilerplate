@@ -19,6 +19,8 @@
     "date-fns": "^2.15.0",
     "express-session": "^1.17.1",
     "helmet": "^4.1.0",
+    "isomorphic-fetch": "^3.0.0",
+    "js-cookie": "^2.2.1",
     "luxon": "^1.25.0",
     "polka": "^1.0.0-next.11",
     "session-file-store": "^1.4.0",

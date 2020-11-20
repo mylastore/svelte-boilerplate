@@ -1,18 +1,9 @@
-<script context="module">
-  export async function preload(page, session) {
-    if (session.user) {
-      this.redirect(302, `/`)
-    }
-  }
-</script>
 <script>
-  import {goto, stores} from '@sapper/app'
   import Message from '../../components/Message.svelte'
   import TextInput from '../../components/ui/TextInput.svelte'
-  import axios from 'axios'
+  import {api} from '@lib/api'
   import {validateEmail, validatePassword} from '@lib/validation.js'
-
-  const {session} = stores()
+  import {authenticate, isAuth} from '@lib/auth'
 
   let user = {email: 'me@me.com', password: 'Password#1'}
   let message
@@ -25,20 +16,16 @@
 
   async function submitForm() {
     try {
-      const res = await axios.post('/user/login', user)
-      $session.user = res.data
+      const res = await api('POST', 'user/login', user)
       message = null
       user = {email: '', password: ''}
-      if(res.data.role === 'admin'){
-        return goto('/admin')
-      }
-      goto(`/profile/${$session.user.username}`)
+
+      await authenticate(res, () => {
+        return window.location.href=`/profile/${res.username}`
+      })
     } catch (err) {
       messageType = 'warning'
-      if(err.response.status === 503){
-        return message = 'Network Connection Error, Please try again later.'
-      }
-      return  message = err.response.data.message
+      return  message = err.message
      }
   }
 
