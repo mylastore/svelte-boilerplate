@@ -6,38 +6,40 @@
   }
 </script>
 <script>
-  import {goto, stores} from '@sapper/app'
-  import axios from 'axios'
   import Message from '../components/Message.svelte'
   import TextInput from '../components/ui/TextInput.svelte'
-  import {validateRequired, validateEmail, validatePassword} from '@lib/validation.js'
-
+  import {api} from '@lib/api'
+  import {validateEmail, validatePassword} from '@lib/validation.js'
+  import {stores} from '@sapper/app'
   const {session} = stores()
 
-  let user = {email: '', password: ''}
+  let name = ''
+  let email = ''
+  let password = ''
   let passwordConfirmation = ''
   let message
   let messageType
 
-  $: emailValid = validateEmail(user.email)
-  $: passwordValid = validatePassword(user.password)
-  $: passwordConfirmValid = user.password === passwordConfirmation
+  $: emailValid = validateEmail(email)
+  $: passwordValid = validatePassword(password)
+  $: passwordConfirmValid = password === passwordConfirmation
   $: formIsValid = emailValid && passwordValid && passwordConfirmValid
 
   async function submitForm() {
     try {
-      const response = await axios.post('/user/register', user)
-      $session.user = response.data
-      message = null
-      user = {username: '', password: ''}
-      goto('/profile')
-
+      const res = await api('POST', 'user/account-activation', {name, email, password})
+      console.log('res? ',res)
+      if (res && res.status >= 400) {
+        throw new Error(res.message)
+      }
+      email = ''
+      password = ''
+      name = ''
+      messageType = "success"
+      return message = res.message
     } catch (err) {
       messageType = 'warning'
-      if(err.response.status === 503){
-        return message = 'Network Connection Error, Please try again later.'
-      }
-      return  message = err.response.data.message
+      return  message = err.message
     }
   }
 
@@ -61,60 +63,73 @@
 <section class="section">
   <div class="container">
     <div class="column is-8 is-offset-2">
-      <div class="card la-card">
-        <div class="card-content clearfix">
-          <h2 class="la-headline primary-color">REGISTER</h2>
-          <p class="is-centered">We're happy you're here!</p>
-          <div class="is-centered">
+
+      {#if message}
+        <Message message={message} messageType={messageType} on:closeMessageEvent={closeMessage}/>
+        {:else}
+
+        <div class="card la-card">
+          <div class="card-content clearfix">
+            <h2 class="la-headline primary-color">REGISTER</h2>
+            <p class="is-centered">We're happy you're here!</p>
+            <div class="is-centered">
+            </div>
+            <div class="la-divider">
+              <hr class="la-divider-left"/>
+              <p class="la-divider-text"><i class="fas fa-shield-alt"></i></p>
+              <hr class="ua-divider-right"/>
+            </div>
+            <form>
+              <TextInput
+                  id="name"
+                  label="Name"
+                  valid={name}
+                  validityMessage="Please enter a valid email."
+                  value={name}
+                  className="is-large"
+                  on:input={event => (name = event.target.value)}/>
+              <TextInput
+                  id="email"
+                  label="Email"
+                  valid={emailValid}
+                  validityMessage="Please enter a valid email."
+                  value={email}
+                  className="is-large"
+                  on:input={event => (email = event.target.value)}/>
+              <TextInput
+                  id="password"
+                  label="Password"
+                  type="password"
+                  valid={passwordValid}
+                  validityMessage="Please enter a valid password."
+                  value={password}
+                  className="is-large"
+                  on:input={event => (password = event.target.value)}/>
+              <TextInput
+                  id="passwordConfirmation"
+                  label="Password Confirmation"
+                  type="password"
+                  valid={passwordConfirmValid}
+                  validityMessage="Passwords did not match"
+                  value={passwordConfirmation}
+                  className="is-large"
+                  on:input={event => (passwordConfirmation = event.target.value)}/>
+              <p class="help">Password minimum length 8, must have 1 capital letter, 1 number and 1 special character.</p>
+              <button
+                  class="button is-success is-pulled-right"
+                  on:click|preventDefault={submitForm}
+                  disabled={!formIsValid}>
+                Register
+              </button>
+            </form>
           </div>
-          <div class="la-divider">
-            <hr class="la-divider-left"/>
-            <p class="la-divider-text"><i class="fas fa-shield-alt"></i></p>
-            <hr class="ua-divider-right"/>
-          </div>
-          {#if message}
-            <Message message={message} messageType={messageType} on:closeMessageEvent={closeMessage}/>
-          {/if}
-          <form>
-            <TextInput
-                id="email"
-                label="Email"
-                valid={emailValid}
-                validityMessage="Please enter a valid email."
-                value={user.email}
-                className="is-large"
-                on:input={event => (user.email = event.target.value)}/>
-            <TextInput
-                id="password"
-                label="Password"
-                type="password"
-                valid={passwordValid}
-                validityMessage="Please enter a valid password."
-                value={user.password}
-                className="is-large"
-                on:input={event => (user.password = event.target.value)}/>
-            <TextInput
-                id="passwordConfirmation"
-                label="Password Confirmation"
-                type="password"
-                valid={passwordConfirmValid}
-                validityMessage="Passwords did not match"
-                value={passwordConfirmation}
-                className="is-large"
-                on:input={event => (passwordConfirmation = event.target.value)}/>
-            <p class="help">Password minimum length 8, must have 1 capital letter, 1 number and 1 special character.</p>
-            <button
-                class="button is-success is-pulled-right"
-                on:click|preventDefault={submitForm}
-                disabled={!formIsValid}>
-              Register
-            </button>
-          </form>
+          <footer class="card-footer primary-bg">
+            <a href="login" class="card-footer-item">Already have an account?</a>
+          </footer>
         </div>
-        <footer class="card-footer primary-bg">
-          <a href="login" class="card-footer-item">Already have an account?</a>
-        </footer>
-      </div>
+
+      {/if}
+
     </div>
   </div>
 </section>

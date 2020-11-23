@@ -13,8 +13,9 @@
   import {validateEmail, validatePassword} from '@lib/validation'
   import TextInput from '../../components/ui/TextInput.svelte'
   import LoadingSpinner from '../../components/ui/LoadingSpinner.svelte'
-  import {getCookie, userLogout, isAuth, authenticate} from '@lib/auth'
+  import fetch from "isomorphic-fetch"
   import {stores} from '@sapper/app'
+
   const {session} = stores()
 
   let role = ''
@@ -86,7 +87,7 @@
         username,
         about,
       }
-      const res = await api('PATCH', `user/account/${isAuth().username}`, userObject, getCookie('token'))
+      const res = await api('PATCH', `user/account/${$session.user.username}`, userObject, $session.user.token)
       if (res && res.status >= 400) {
         if (res.status === 502) {
           serverError = true
@@ -112,9 +113,19 @@
     )
     if (result) {
       try {
-        await api('POST', 'user/delete', {_id: _id}, getCookie('token'))
-        await userLogout()
-        return window.location.href = "/"
+        const res = await fetch("/user/delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${$session.user.token}`
+          },
+          body: JSON.stringify({_id})
+        })
+
+        if (res) {
+          $session.user = null
+        }
       } catch (err) {
         isLoading = false
         messageType = 'warning'
@@ -130,7 +141,7 @@
         _id,
         password
       }
-      const res = await api('POST', 'user/update-password', userObject, getCookie('token'))
+      const res = await api('POST', 'user/update-password', userObject, $session.user.token)
       if (res && res.status >= 400) {
         if (res.status === 502) {
           serverError = true

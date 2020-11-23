@@ -8,11 +8,10 @@
 <script>
   import Message from '../components/Message.svelte'
   import TextInput from '../components/ui/TextInput.svelte'
-  import {api} from '@lib/api'
   import {validateEmail, validatePassword} from '@lib/validation.js'
   import {stores} from '@sapper/app'
   const {session} = stores()
-  import fetch from "isomorphic-fetch";
+  import fetch from "isomorphic-fetch"
 
   let email = "me@me.com"
   let password = "Password#1"

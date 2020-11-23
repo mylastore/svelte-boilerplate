@@ -9,7 +9,7 @@ export async function post(req, res) {
   try {
     const { email, password } = req.body;
 
-    const result = await fetch(`${process.env.API_BASE_URL}/user/login`, {
+    const result = await fetch(`${process.env.API_BASE_URL}/user/register`, {
       method: "POST",
       headers,
       body: JSON.stringify({ email, password }),

@@ -11,19 +11,7 @@
   let messageType
   let links = []
 
-  let name
-  let email
-  let role
-  let username
-
   const companyName = process.env.COMPANY_NAME
-
-  if($session.user){
-    name = $session.user.name
-    email = $session.user.email
-    role = $session.user.role
-    username = $session.user.username
-  }
 
   function toggleNav() {
     isActive = !isActive
@@ -39,7 +27,6 @@
     })
     if (res) {
       $session.user = null
-      return window.location.href = "/";
     }
   }
 
@@ -76,13 +63,13 @@
         {#if $session.user}
           <div class="navbar-item has-dropdown is-hoverable">
             <a class="navbar-link">
-              {username}
+              {$session.user.username}
             </a>
             <div class="navbar-dropdown is-right">
-              <a class="navbar-item" href="/profile/{username}">
+              <a class="navbar-item" href="/profile/{$session.user.username}">
                 Profile
               </a>
-              {#if role === "admin"}
+              {#if $session.user.role === "admin"}
                 <a class="navbar-item" href="admin">
                   Admin
                 </a>
