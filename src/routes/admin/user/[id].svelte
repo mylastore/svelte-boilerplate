@@ -7,11 +7,10 @@
 </script>
 
 <script>
-  import * as api from "api"
+  import {api} from "@lib/api"
   import Message from "../../../components/Message.svelte"
-  import {stores} from '@sapper/app'
   import {onMount} from 'svelte'
-
+  import {stores} from '@sapper/app'
   const {session, page} = stores()
 
   let userId
@@ -29,15 +28,18 @@
 
   async function getUser() {
     try {
-      const res = await api.user.getUser($page.params.id, {}, $session.user.token)
+      const res = await api('GET', `admin/user/${$page.params.id}`, {}, $session.user.token)
+      if (res.status >= 400) {
+        return message = res.message
+      }
       isLoading = false
       userEmail = res.email
       userAvatar = res.avatar
       userRole = res.role
-      userName = res.profile.name
-      userWebsite = res.profile.website
-      userLocation = res.profile.location
-      userGender = res.profile.gender
+      userName = res.name
+      userWebsite = res.website
+      userLocation = res.location
+      userGender = res.gender
 
     } catch (err) {
       isLoading = false;

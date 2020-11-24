@@ -11,7 +11,7 @@
   let messageType
   let links = []
 
-  const companyName = process.env.COMPANY_NAME
+  const companyName = process.env.APP_NAME
 
   function toggleNav() {
     isActive = !isActive
@@ -39,7 +39,7 @@
 
 </script>
 
-<nav class="navbar is-info" role="navigation" aria-label="main navigation">
+<nav class="navbar is-info is-mobile" role="navigation" aria-label="main navigation">
   <div class="container">
     <div class="navbar-brand">
       <a class="navbar-item" href="/">

@@ -7,12 +7,12 @@
 </script>
 
 <script>
-  import {stores} from '@sapper/app'
+  import {api} from '@lib/api'
   import Tabs from '../../components/Tabs.svelte'
-  import * as api from 'api'
   import LoadingSpinner from "../../components/ui/LoadingSpinner.svelte";
   import Message from '../../components/Message.svelte'
 
+  import {stores} from '@sapper/app'
   const {session} = stores()
 
   let isLoading = true
@@ -25,15 +25,16 @@
 
 
   (async () => {
-    const res = await api.user.getUserCount({}, $session.user.token)
-    isLoading = false
-    return userCount = Number(res)
-
-  })().catch(err => {
+    const res = await api('GET', 'admin/stats', {} ,$session.user.token)
+    if (res.status >= 400) {
+      return message = res.message
+    }
+    userCount = res
     isLoading = false
     messageType = 'warning'
-    return message = err.message
-  })
+    return message = res.message
+  })()
+
   function closeMessage(){
     message = null
   }

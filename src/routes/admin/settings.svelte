@@ -7,7 +7,7 @@
 </script>
 
 <script>
-  import * as api from "api";
+  import {api} from "@lib/api";
   import Message from "../../components/Message.svelte";
   import { stores  } from '@sapper/app'
   import Tabs from '../../components/Tabs.svelte'
@@ -26,7 +26,12 @@
   let userId;
 
   (async () => {
-    const res =  await api.user.getProfile({}, $session.user.token)
+    const res =  await api('POST', 'user/account', {}, $session.user.token)
+    if (res.status >= 400) {
+      messageType = 'warning'
+      isLoading = false
+      return message = res.message
+    }
     isLoading = false
     userId = res._id
     newQuote = res.settings.newQuote;
@@ -46,11 +51,12 @@
     }
     const userObject = {
       newUser: newUser,
-      newQuote: newQuote
+      newQuote: newQuote,
+      userId: userId
     };
 
     try {
-      await api.user.updateSettings(userId, userObject, $session.user.token );
+      await api('PATCH', `admin/update-settings`, userObject, $session.user.token );
     } catch (err) {
       messageType = 'warning'
       return message = err;

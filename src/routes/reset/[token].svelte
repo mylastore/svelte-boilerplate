@@ -1,5 +1,5 @@
 <script>
-  import * as api from "api";
+  import {api} from "@lib/api";
   import Message from "../../components/Message.svelte";
   import TextInput from "../../components/ui/TextInput.svelte";
   import {validatePassword} from "@lib/validation";
@@ -18,20 +18,17 @@
   $: passwordFormIsValid = passwordValid && passwordConfirmValid;
 
   async function submitForm() {
-
     const resetForm = document.getElementById("password-reset-form")
     const userData = {
       password: password,
-      passwordConfirmation: passwordConfirmation,
       passwordResetToken: $page.params.token
     }
 
     try {
-      await api.user.userResetPassword(userData);
+      await api('POST', 'user/reset-password', userData);
       messageType = 'success';
       message = 'Password updated successfully';
       return resetForm.reset();
-
     } catch (err) {
       messageType = 'warning'
       message = err.message

@@ -8,7 +8,7 @@
 
 <script>
   import {goto, stores} from '@sapper/app'
-  import * as api from "api";
+  import {api} from "@lib/api";
   import Message from "./../../../components/Message.svelte";
   import {formatDate} from "@lib/utils";
   import {paginate, PaginationNav} from "./../../../components/paginate";
@@ -35,7 +35,11 @@
 
   async function getAllUsers(pageNumber) {
     try {
-      const res = await api.user.getUsers(pageNumber, {}, $session.user.token)
+      const res = await api('GET', `admin/users/${pageNumber}`, {}, $session.user.token)
+      if (res.status >= 400) {
+        isLoading = false
+        return message = res.message
+      }
       isLoading = false
       pageSize = res.perPage
       items = res.users
@@ -149,10 +153,10 @@
                   <td>
                     <span data-id={user._id}>{user.email}</span>
                   </td>
-                  <td>{user.profile.name}</td>
-                  <td>{user.profile.gender}</td>
-                  <td>{user.profile.website}</td>
-                  <td>{user.profile.location}</td>
+                  <td>{user.name}</td>
+                  <td>{user.gender}</td>
+                  <td>{user.website}</td>
+                  <td>{user.location}</td>
                   <td>{formatDate(user.createdAt)}</td>
                   <td>
                     <a class="link" href="admin/user/{user._id}">
