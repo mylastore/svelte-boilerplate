@@ -10,6 +10,7 @@
   import {api} from "@lib/api"
   import Message from "../../../components/Message.svelte"
   import {onMount} from 'svelte'
+  import timeAgo from '@lib/timeAgo'
   import {stores} from '@sapper/app'
   const {session, page} = stores()
 
@@ -17,6 +18,7 @@
   let userEmail = ""
   let userAvatar = ""
   let userName = ""
+  let name = ""
   let userRole = ""
   let userWebsite = ""
   let userLocation = ""
@@ -28,20 +30,26 @@
 
   async function getUser() {
     try {
-      const res = await api('GET', `admin/user/${$page.params.id}`, {}, $session.user.token)
+      const res = await api('GET', `admin/user/${$page.params.id}`,  {}, $session.user.token)
       if (res.status >= 400) {
-        return message = res.message
+        isLoading = false
+        messageType = 'warning'
+        throw new Error(res.message)
       }
       isLoading = false
       userEmail = res.email
       userAvatar = res.avatar
       userRole = res.role
-      userName = res.name
+      name = res.name
+      userName = res.username
       userWebsite = res.website
       userLocation = res.location
       userGender = res.gender
 
+      memberSince = timeAgo(res.createdAt)
+
     } catch (err) {
+      messageType = 'warning'
       isLoading = false;
       return message = err.message;
     }
@@ -71,7 +79,7 @@
       <div class="card-header-icon">:::</div>
     </div>
     <div class="card-content">
-      {#if userName}<p><b>Name: </b> <span>{userName}</span></p>{/if}
+      {#if name}<p><b>Name: </b> <span>{name}</span></p>{/if}
       <p><b>Email: </b> <span>{userEmail}</span></p>
       {#if userGender}<p><b>Gender: </b> <span>{userGender}</span></p>{/if}
       {#if userLocation}<p><b>Location: </b> <span>{userLocation}</span></p>{/if}
@@ -79,6 +87,8 @@
       {#if userWebsite}<p><b>Website: </b> <span>{userWebsite}</span></p>{/if}
       <br>
       <img class="center" src={userAvatar} alt="user image"/>
+      <div class="has-text-centered">@{userName}</div>
+      <div class="has-text-centered">Member Since: {memberSince}</div>
     </div>
   </div>
 </section>

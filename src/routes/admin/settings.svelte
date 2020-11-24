@@ -27,10 +27,10 @@
 
   (async () => {
     const res =  await api('POST', 'user/account', {}, $session.user.token)
-    if (res.status >= 400) {
-      messageType = 'warning'
+    if(res.status >= 400){
       isLoading = false
-      return message = res.message
+      messageType = 'warning'
+      throw new Error(res.message)
     }
     isLoading = false
     userId = res._id
@@ -56,7 +56,7 @@
     };
 
     try {
-      await api('PATCH', `admin/update-settings`, userObject, $session.user.token );
+      await api('PATCH', 'admin/update-settings', userObject, $session.user.token );
     } catch (err) {
       messageType = 'warning'
       return message = err;

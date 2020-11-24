@@ -28,7 +28,6 @@
   async function submitForm() {
     try {
       const res = await api('POST', 'user/account-activation', {name, email, password})
-      console.log('res? ',res)
       if (res && res.status >= 400) {
         throw new Error(res.message)
       }
