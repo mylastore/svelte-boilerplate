@@ -1,21 +1,20 @@
 <script context="module">
   export async function preload(page, session) {
-    if (session.user.role !== 'admin') {
+    if (!session.user || session.user.role !== 'admin') {
       this.redirect(302, `/`)
     }
   }
 </script>
 
 <script>
-  import {goto, stores} from '@sapper/app'
-  import * as api from "api";
+  import {api} from "@lib/api";
   import Message from "./../../../components/Message.svelte";
-  import {formatDate} from "@lib/utils";
+  import timeAgo from "@lib/timeAgo";
   import {paginate, PaginationNav} from "./../../../components/paginate";
   import Tabs from './../../../components/Tabs.svelte'
   import {onDestroy} from 'svelte'
   import LoadingSpinner from './../../../components/ui/LoadingSpinner.svelte'
-
+  import {goto, stores} from '@sapper/app'
   const {session, page} = stores()
 
   let isLoading = true
@@ -35,13 +34,17 @@
 
   async function getAllUsers(pageNumber) {
     try {
-      const res = await api.user.getUsers(pageNumber, {}, $session.user.token)
+      const res = await api('GET', `admin/users/${pageNumber}`, {}, $session.user.token)
+      if (res.status >= 400) {
+        isLoading = false
+        messageType = 'warning'
+        throw new Error(res.message)
+      }
       isLoading = false
       pageSize = res.perPage
       items = res.users
       totalItems = res.totalItems
       return users = res.users
-
     } catch (err) {
       isLoading = false
       messageType = 'warning'
@@ -128,7 +131,7 @@
                   <abbr title="Location">Location</abbr>
                 </th>
                 <th>
-                  <abbr title="Customer Since">Customer Since</abbr>
+                  <abbr title="Customer Since">Member Since</abbr>
                 </th>
                 <th>
                   <abbr title="Action Button">Action</abbr>
@@ -149,11 +152,11 @@
                   <td>
                     <span data-id={user._id}>{user.email}</span>
                   </td>
-                  <td>{user.profile.name}</td>
-                  <td>{user.profile.gender}</td>
-                  <td>{user.profile.website}</td>
-                  <td>{user.profile.location}</td>
-                  <td>{formatDate(user.createdAt)}</td>
+                  <td>{user.name}</td>
+                  <td>{user.gender}</td>
+                  <td>{user.website}</td>
+                  <td>{user.location}</td>
+                  <td>{timeAgo(user.createdAt)}</td>
                   <td>
                     <a class="link" href="admin/user/{user._id}">
                       <i class="fas fa-link"></i>

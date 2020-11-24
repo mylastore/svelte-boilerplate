@@ -15,7 +15,6 @@
     const forgotForm = document.getElementById("forgot-form");
     try {
       const res = await api.user.forgotPassword({email: email});
-      console.log('res ', res)
       if (res) {
         messageType = 'success';
         message = res.message;
