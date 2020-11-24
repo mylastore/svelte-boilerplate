@@ -1,20 +1,20 @@
 <script>
   import TextInput from "../components/ui/TextInput.svelte";
   import {validateRequired, validateEmail} from "@lib/validation";
-  import * as api from "api";
+  import {api} from "@lib/api";
   import Message from "../components/Message.svelte";
 
   let name = ""
   let email = ""
-  let site = ""
-  let tel = ""
+  let company = ""
+  let phone = ""
   let msg = ""
   let message
   let messageType
 
   $: nameValid = !validateRequired(name)
   $: emailValid = validateEmail(email);
-  $: companyValid = !validateRequired(site)
+  $: companyValid = !validateRequired(company)
   $: contentValid = !validateRequired(msg)
   $: formIsValid = nameValid && companyValid && emailValid && contentValid
 
@@ -23,11 +23,11 @@
       const userData = {
         name: name,
         email: email,
-        msg: msg,
-        site: site,
-        tel: tel
+        message: msg,
+        company: company,
+        phone: phone
       };
-      const res = await api.user.submitQuote(userData)
+      const res = await api('POST', 'admin/quote', userData)
       if (res) {
         messageType = "success";
         message = 'Your quote was sent successfully!';
@@ -88,16 +88,16 @@
                   type="text"
                   valid={companyValid}
                   validityMessage="Please enter a valid company name."
-                  value={site}
+                  value={company}
                   className="is-large"
-                  on:input={e => (site = e.target.value)}/>
+                  on:input={e => (company = e.target.value)}/>
               <TextInput
                   id="phone"
                   label="Phone Number(optional)"
                   type="text"
                   className="is-large"
-                  value={tel}
-                  on:input={e => (tel = e.target.value)}/>
+                  value={phone}
+                  on:input={e => (phone = e.target.value)}/>
 
               <TextInput
                   id="content"
