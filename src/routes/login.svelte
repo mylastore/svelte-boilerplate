@@ -87,7 +87,7 @@
         <div class="card-content clearfixed">
           <h2 class="la-headline primary-color">HI, THERE</h2>
           <p class="is-centered">
-            You can log in to your My LA Store account here.
+            You can log in to your {process.env.APP_NAME} account here.
           </p>
           <div class="is-centered">
           </div>

@@ -14,7 +14,7 @@ const mode = process.env.NODE_ENV
 const dev = mode === 'development'
 const legacy = !!process.env.SAPPER_LEGACY_BUILD
 const apiBaseUrl = process.env.API_BASE_URL
-const companyName = process.env.COMPANY_NAME
+const companyName = process.env.APP_NAME
 const secret = process.env.SECRET_KEY
 
 const onwarn = (warning, onwarn) => (warning.code === 'CIRCULAR_DEPENDENCY' && /[/\\]@sapper[/\\]/.test(warning.message)) || onwarn(warning);
@@ -30,7 +30,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 				'process.env.SECRET_KEY': JSON.stringify(secret),
 				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-				'process.env.COMPANY_NAME': JSON.stringify(companyName)
+				'process.env.APP_NAME': JSON.stringify(companyName)
 			}),
 			svelte({
 				dev,
@@ -78,7 +78,7 @@ export default {
 				'process.env.SECRET_KEY': JSON.stringify(secret),
 				'process.env.NODE_ENV': JSON.stringify(mode),
 				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-				'process.env.COMPANY_NAME': JSON.stringify(companyName)
+				'process.env.APP_NAME': JSON.stringify(companyName)
 			}),
 			svelte({
 				generate: 'ssr',
@@ -107,7 +107,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 				'process.env.SECRET_KEY': JSON.stringify(secret),
 				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-				'process.env.COMPANY_NAME': JSON.stringify(companyName)
+				'process.env.APP_NAME': JSON.stringify(companyName)
 			}),
 			commonjs(),
 			!dev && terser()

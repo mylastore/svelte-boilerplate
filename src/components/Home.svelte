@@ -1,4 +1,5 @@
 <script>
+    const appName = process.env.APP_NAME
     var words = ["E-commerce", "SEO Ready Websites", "Hosting Services", "Custom Websites"],
             randomWords = 'Custom Websites',
             currentWord = 0;
@@ -18,7 +19,7 @@
 </script>
 
 <svelte:head>
-    <title>My LA Store - Web Development Services</title>
+    <title>{appName} - Web Development Services</title>
 </svelte:head>
 
 <section class="hero is-light">
@@ -26,7 +27,7 @@
         <div class="container has-text-centered">
             <h1 class="title is-size-1">
                 Get your business online with
-                My LA Store Services
+                {appName} Services
             </h1>
             <br>
             <h2 class="subtitle">
@@ -51,7 +52,7 @@
                 <div class="box-in">
                     <h1 class="title is-size-1">Do you need to improve your website?</h1>
                     <h2 class="subtitle">Have an inspiration website?</h2>
-                    <p>My LA Store can customize the design to tailored your industry.</p>
+                    <p>{appName} can customize the design to tailored your industry.</p>
                 </div>
             </div>
             <div class="column in-half">
@@ -74,7 +75,7 @@
             <div class="column is-half box-out">
                 <div class="box-in">
                     <h1 class="title is-size-1">Whether you need a website, online shop or anything else.</h1>
-                    <p>My LA Store can help you get started from a simple blog to a more complex website.</p>
+                    <p>{appName} can help you get started from a simple blog to a more complex website.</p>
                 </div>
             </div>
         </div>

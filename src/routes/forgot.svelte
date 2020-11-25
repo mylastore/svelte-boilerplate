@@ -1,8 +1,8 @@
 <script>
-  import {validateRequired, validateEmail} from "@lib/validation";
+  import {validateEmail} from "@lib/validation";
   import TextInput from "../components/ui/TextInput.svelte";
   import Message from "../components/Message.svelte";
-  import * as api from "api";
+  import {api} from "@lib/api";
 
   let message;
   let email = "";
@@ -14,15 +14,16 @@
   async function submitForm() {
     const forgotForm = document.getElementById("forgot-form");
     try {
-      const res = await api.user.forgotPassword({email: email});
-      if (res) {
-        messageType = 'success';
-        message = res.message;
-        return forgotForm.reset();
+      const res = await api('POST', 'user/forgot', {email})
+      if (res && res.status >= 400) {
+        throw new Error(res.message)
       }
+      messageType = 'success';
+      message = res.message;
+      return forgotForm.reset();
     } catch (err) {
       messageType = 'warning'
-      message = err.message
+      return message = err.message
     }
   }
 
