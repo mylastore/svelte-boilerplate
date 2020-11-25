@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "svelte-app",
+      "script": "__sapper__/build",
+      "instances": 1,
+      "exec_mode": "cluster"
+    }
+  ]
+}

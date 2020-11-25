@@ -28,6 +28,7 @@ export default {
 			replace({
 				'process.browser': true,
 				'process.env.NODE_ENV': JSON.stringify(mode),
+				'process.env.SECRET_KEY': JSON.stringify(secret),
 				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
 				'process.env.COMPANY_NAME': JSON.stringify(companyName)
 			}),
@@ -104,6 +105,7 @@ export default {
 			replace({
 				'process.browser': true,
 				'process.env.NODE_ENV': JSON.stringify(mode),
+				'process.env.SECRET_KEY': JSON.stringify(secret),
 				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
 				'process.env.COMPANY_NAME': JSON.stringify(companyName)
 			}),

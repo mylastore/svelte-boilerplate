@@ -10,7 +10,7 @@ const FileStore = sessionFileStore(session)
 
 const {PORT, NODE_ENV} = process.env
 const dev = NODE_ENV === 'development'
-const secret = process.env.SESSION_SECRET
+const secret = process.env.SECRET_KEY
 
 polka()
   .use(
@@ -20,7 +20,7 @@ polka()
       resave: false,
       saveUninitialized: true,
       cookie: {
-        maxAge: 3600000 // 1hr
+        maxAge: 1000 * 60 * 100
       },
       store: new FileStore({
         path: '.sessions'
