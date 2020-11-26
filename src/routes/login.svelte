@@ -37,13 +37,13 @@
 
       if (res && res.status >= 400) {
         throw new Error(res.message)
-      }
+      } else {
         $session.user = res
         message = null
-       email = ''
-       password = ''
-      return window.location.href=`/profile/${res.username}`
-
+        email = ''
+        password = ''
+        return window.location.href=`/profile/${res.username}`
+      }
     } catch (err) {
       messageType = 'warning'
       return  message = err.message

@@ -41,10 +41,7 @@
   (async () => {
     try {
       const res = await api('POST', 'user/account', {}, $session.user.token)
-      if (res && res.status >= 400) {
-        if (res.status === 502) {
-          serverError = true
-        }
+      if (res.status >= 400) {
         throw new Error(res.message)
       }
       $session.user = res
@@ -88,18 +85,13 @@
         about,
       }
       const res = await api('PATCH', `user/account/${$session.user.username}`, userObject, $session.user.token)
-      if (res && res.status >= 400) {
-        if (res.status === 502) {
-          serverError = true
-        }
+      if (res.status >= 400) {
         throw new Error(res.message)
       }
-      if (res) {
-        messageType = 'success'
-        message = 'User profile was updated successfully!'
-        isLoading = false
-        return window.scrollTo(0, 0)
-      }
+      messageType = 'success'
+      message = 'User profile was updated successfully!'
+      isLoading = false
+      return window.scrollTo(0, 0)
     } catch (err) {
       isLoading = false
       messageType = 'warning'
