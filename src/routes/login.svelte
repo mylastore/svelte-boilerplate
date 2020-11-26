@@ -35,15 +35,16 @@
       });
       const res = await response.json();
 
-      if (res && res.status >= 400) {
+      if (res.status >= 400) {
         throw new Error(res.message)
-      } else {
+      }
+      setTimeout(()=>{
         $session.user = res
         message = null
         email = ''
         password = ''
         return window.location.href=`/profile/${res.username}`
-      }
+      }, 300)
     } catch (err) {
       messageType = 'warning'
       return  message = err.message
