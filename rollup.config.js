@@ -6,114 +6,105 @@ import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import config from 'sapper/config/rollup.js';
 import pkg from './package.json';
-import dotenv from 'dotenv'
 
-dotenv.config()
+const mode = process.env.NODE_ENV;
+const dev = mode === 'development';
+const legacy = !!process.env.SAPPER_LEGACY_BUILD;
 
-const mode = process.env.NODE_ENV
-const dev = mode === 'development'
-const legacy = !!process.env.SAPPER_LEGACY_BUILD
-const apiBaseUrl = process.env.API_BASE_URL
-const companyName = process.env.APP_NAME
-const secret = process.env.SECRET_KEY
+const apiBaseUrl = process.env.API_BASE_URL;
+const appName = process.env.APP_NAME;
+const secret = process.env.SECRET_KEY;
 
 const onwarn = (warning, onwarn) => (warning.code === 'CIRCULAR_DEPENDENCY' && /[/\\]@sapper[/\\]/.test(warning.message)) || onwarn(warning);
-const dedupe = importee => importee === 'svelte' || importee.startsWith('svelte/');
 
 export default {
-	client: {
-		input: config.client.input(),
-		output: config.client.output(),
-		plugins: [
-			replace({
-				'process.browser': true,
-				'process.env.NODE_ENV': JSON.stringify(mode),
-				'process.env.SECRET_KEY': JSON.stringify(secret),
-				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-				'process.env.APP_NAME': JSON.stringify(companyName)
-			}),
-			svelte({
-				dev,
-				hydratable: true,
-				emitCss: true
-			}),
-			resolve({
-				browser: true,
-				dedupe
-			}),
-			commonjs(),
+  client: {
+    input: config.client.input(),
+    output: config.client.output(),
+    plugins: [
+      replace({
+        'process.browser': true,
+        'process.env.NODE_ENV': JSON.stringify(mode),
+        'process.env.SECRET_KEY': JSON.stringify(secret),
+        'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+        'process.env.APP_NAME': JSON.stringify(appName)
+      }),
+      svelte({
+        dev,
+        hydratable: true,
+        emitCss: true
+      }),
+      resolve({
+        browser: true
+      }),
+      commonjs(),
 
-			legacy && babel({
-				extensions: ['.js', '.mjs', '.html', '.svelte'],
-				runtimeHelpers: true,
-				exclude: ['node_modules/@babel/**'],
-				presets: [
-					['@babel/preset-env', {
-						targets: '> 0.25%, not dead'
-					}]
-				],
-				plugins: [
-					'@babel/plugin-syntax-dynamic-import',
-					['@babel/plugin-transform-runtime', {
-						useESModules: true
-					}]
-				]
-			}),
+      legacy && babel({
+        extensions: ['.js', '.mjs', '.html', '.svelte'],
+        runtimeHelpers: true,
+        exclude: ['node_modules/@babel/**'],
+        presets: [
+          ['@babel/preset-env', {
+            targets: '> 0.25%, not dead'
+          }]
+        ],
+        plugins: [
+          '@babel/plugin-syntax-dynamic-import',
+          ['@babel/plugin-transform-runtime', {
+            useESModules: true
+          }]
+        ]
+      }),
 
-			!dev && terser({
-				module: true
-			})
-		],
-		onwarn: function ( message ) {
-			if ( /external dependency/.test( message ) ) return false;
-		}
-	},
+      !dev && terser({
+        module: true
+      })
+    ],
 
-	server: {
-		input: config.server.input(),
-		output: config.server.output(),
-		plugins: [
-			replace({
-				'process.browser': false,
-				'process.env.SECRET_KEY': JSON.stringify(secret),
-				'process.env.NODE_ENV': JSON.stringify(mode),
-				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-				'process.env.APP_NAME': JSON.stringify(companyName)
-			}),
-			svelte({
-				generate: 'ssr',
-				dev
-			}),
-			resolve({
-				dedupe
-			}),
-			commonjs()
-		],
-		external: Object.keys(pkg.dependencies).concat(
-			require('module').builtinModules || Object.keys(process.binding('natives'))
-		),
-		onwarn: function ( message ) {
-			if ( /external dependency/.test( message ) ) return false;
-		}
-	},
+    onwarn,
+  },
 
-	serviceworker: {
-		input: config.serviceworker.input(),
-		output: config.serviceworker.output(),
-		plugins: [
-			resolve(),
-			replace({
-				'process.browser': true,
-				'process.env.NODE_ENV': JSON.stringify(mode),
-				'process.env.SECRET_KEY': JSON.stringify(secret),
-				'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-				'process.env.APP_NAME': JSON.stringify(companyName)
-			}),
-			commonjs(),
-			!dev && terser()
-		],
-		onwarn: function ( message ) {
-			if ( /external dependency/.test( message ) ) return false;
-		}
-	}
+  server: {
+    input: config.server.input(),
+    output: config.server.output(),
+    plugins: [
+      replace({
+        'process.browser': false,
+        'process.env.NODE_ENV': JSON.stringify(mode),
+        'process.env.SECRET_KEY': JSON.stringify(secret),
+        'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+        'process.env.APP_NAME': JSON.stringify(appName)
+      }),
+      svelte({
+        generate: 'ssr',
+        dev
+      }),
+      resolve(),
+      commonjs()
+    ],
+    external: Object.keys(pkg.dependencies).concat(
+      require('module').builtinModules || Object.keys(process.binding('natives'))
+    ),
+
+    onwarn,
+  },
+
+  serviceworker: {
+    input: config.serviceworker.input(),
+    output: config.serviceworker.output(),
+    plugins: [
+      resolve(),
+      replace({
+        'process.browser': true,
+        'process.env.NODE_ENV': JSON.stringify(mode),
+        'process.env.SECRET_KEY': JSON.stringify(secret),
+        'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+        'process.env.APP_NAME': JSON.stringify(appName)
+      }),
+      commonjs(),
+      !dev && terser()
+    ],
+
+    onwarn,
+  }
 };
