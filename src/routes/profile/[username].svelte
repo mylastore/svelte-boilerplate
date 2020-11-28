@@ -114,7 +114,6 @@
           },
           body: JSON.stringify({_id})
         })
-
         if (res) {
           $session.user = null
         }

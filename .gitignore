@@ -8,3 +8,4 @@ __sapper__
 .env
 .idea
 cypress
+package-lock.json

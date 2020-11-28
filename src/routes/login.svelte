@@ -9,7 +9,8 @@
   import Message from '../components/Message.svelte'
   import TextInput from '../components/ui/TextInput.svelte'
   import {validateEmail, validatePassword} from '@lib/validation.js'
-  import {stores} from '@sapper/app'
+  import {stores, goto} from '@sapper/app'
+
   const {session} = stores()
   import fetch from "isomorphic-fetch"
 
@@ -31,24 +32,22 @@
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({email, password}),
       });
       const res = await response.json();
-
-      if (res.status >= 400) {
-        throw new Error(res.message)
+      if (response && res.status >= 400) {
+        messageType = 'warning'
+        return message = res.message
       }
-      setTimeout(()=>{
-        $session.user = res
-        message = null
-        email = ''
-        password = ''
-        return window.location.href=`/profile/${res.username}`
-      }, 300)
+      $session.user = res
+      message = null
+      email = ''
+      password = ''
+      return goto(`/profile/${res.username}`)
     } catch (err) {
       messageType = 'warning'
-      return  message = err.message
-     }
+      return message = err.message
+    }
   }
 
   function closeMessage() {
@@ -75,7 +74,7 @@
       <article class="message is-info">
         <div class="message-header">
           <p>Test Users</p>
-       </div>
+        </div>
         <div class="message-body">
           <h3><strong>Admin:</strong> me@me.com Password#1</h3>
           <h3><strong>Customer:</strong> me1@me.com Password#1</h3>
@@ -101,7 +100,7 @@
             <Message message={message} messageType={messageType} on:closeMessageEvent={closeMessage}/>
           {/if}
           <form>
-              <TextInput
+            <TextInput
                 id="email"
                 label="Email"
                 valid={emailValid}
@@ -142,87 +141,87 @@
 </section>
 
 <style>
-  .fa-shield-alt {
-    font-size: 2em !important;
-    color: #f0f0f0f0
-  }
+    .fa-shield-alt {
+        font-size: 2em !important;
+        color: #f0f0f0f0
+    }
 
-  .is-center {
-    text-align: center;
-    display: block;
-    margin: 20px 0;
-  }
+    .is-center {
+        text-align: center;
+        display: block;
+        margin: 20px 0;
+    }
 
-  button {
-    padding-right: 60px;
-    padding-left: 60px;
-  }
+    button {
+        padding-right: 60px;
+        padding-left: 60px;
+    }
 
-  .card-footer {
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-  }
+    .card-footer {
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
 
-  .card-footer a {
-    color: white;
-  }
+    .card-footer a {
+        color: white;
+    }
 
-  .la-divider {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: 'Brandon Text', 'Asap', Verdana, Arial, sans-serif;
-    color: #5c5c5c;
-    font-weight: bold;
-    width: 90%;
-    margin: 0 auto;
-  }
+    .la-divider {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: 'Brandon Text', 'Asap', Verdana, Arial, sans-serif;
+        color: #5c5c5c;
+        font-weight: bold;
+        width: 90%;
+        margin: 0 auto;
+    }
 
-  .la-divider hr {
-    flex-grow: 3;
-    height: 2px;
-    border: none;
-    background-color: #f2f2f2;
-  }
+    .la-divider hr {
+        flex-grow: 3;
+        height: 2px;
+        border: none;
+        background-color: #f2f2f2;
+    }
 
-  .la-divider .la-divider-text {
-    flex-grow: 1;
-    text-align: center;
-  }
+    .la-divider .la-divider-text {
+        flex-grow: 1;
+        text-align: center;
+    }
 
-  .is-centered {
-    margin: 20px 0;
-    text-align: center;
-  }
+    .is-centered {
+        margin: 20px 0;
+        text-align: center;
+    }
 
-  .la-google-btn {
-    border: 2px solid #e6e7f0;
-    line-height: 1;
-  }
+    .la-google-btn {
+        border: 2px solid #e6e7f0;
+        line-height: 1;
+    }
 
-  .la-google-btn span {
-    margin-right: 30px;
-  }
+    .la-google-btn span {
+        margin-right: 30px;
+    }
 
-  .la-card {
-    border-radius: 4px;
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.16);
-  }
+    .la-card {
+        border-radius: 4px;
+        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.16);
+    }
 
-  .la-headline {
-    font-weight: bold;
-    text-align: center;
-    font-size: 30px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-  }
+    .la-headline {
+        font-weight: bold;
+        text-align: center;
+        font-size: 30px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+    }
 
-  .clearfixed:after {
-    visibility: hidden;
-    display: block;
-    font-size: 0;
-    content: ' ';
-    clear: both;
-    height: 0;
-  }
+    .clearfixed:after {
+        visibility: hidden;
+        display: block;
+        font-size: 0;
+        content: ' ';
+        clear: both;
+        height: 0;
+    }
 </style>

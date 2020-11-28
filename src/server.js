@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config()
 
 import sirv from 'sirv';
 import polka from 'polka'
@@ -20,7 +20,7 @@ polka()
     bodyParser.json(),
     session({
       secret: SECRET_KEY,
-      resave: false,
+      resave: true,
       saveUninitialized: true,
       cookie: {
         maxAge: 1000 * 60 * 100

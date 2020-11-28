@@ -39,7 +39,9 @@
   <div class="container">
     <div class="column is-8 is-offset-2">
     {#if !message}
-    <h5>Activation account for {email}</h5>
+      <div class="content">
+        <h4>Activate account for {email}</h4>
+      </div>
     <hr/>
     <button class="button is-primary is-large" on:click="{activateAccount}">Activate Account</button>
       {:else}

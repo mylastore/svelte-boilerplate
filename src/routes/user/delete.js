@@ -21,6 +21,9 @@ export async function post (req, res) {
       res.end(JSON.stringify({ message: 'success!' }))
     }
   }catch (err){
+    if(error.code === 'ECONNREFUSED'){
+      res.end(JSON.stringify({ status: 502, message: "Oops! Something is wrong. Try later." }))
+    }
     res.end(JSON.stringify({error: err.message}))
   }
 
