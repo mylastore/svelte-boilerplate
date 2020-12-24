@@ -1,8 +1,10 @@
 <script context="module">
+  let token
   export async function preload(page, session) {
     if (session.user.role !== 'admin') {
       this.redirect(302, `/`)
     }
+    token = session.token
   }
 </script>
 
@@ -30,7 +32,7 @@
 
   async function getUser() {
     try {
-      const res = await api('GET', `admin/user/${$page.params.id}`,  {}, $session.user.token)
+      const res = await api('GET', `admin/user/${$page.params.id}`,  {}, token)
       if (res.status >= 400) {
         isLoading = false
         messageType = 'warning'

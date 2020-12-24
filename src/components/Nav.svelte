@@ -1,8 +1,8 @@
 <script>
-  import fetch from "isomorphic-fetch";
+  import {api} from '@lib/api'
   import {onMount} from 'svelte'
-  import {stores} from '@sapper/app'
-  const {session} = stores()
+  import {logout} from '@lib/auth'
+  import {goto, stores} from '@sapper/app'
 
   export let segment
 
@@ -11,6 +11,8 @@
   let messageType
   let links = []
 
+  const {session} = stores()
+
   const APP_NAME = process.env.APP_NAME
 
   function toggleNav() {
@@ -18,15 +20,10 @@
   }
 
   async function logOut() {
-    const res = await fetch("/user/logout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      }
-    })
+    const res = await api('POST', 'user/logout')
     if (res) {
-      $session.user = null
+      await logout()
+      location.href = '/'
     }
   }
 

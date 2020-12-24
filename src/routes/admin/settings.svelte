@@ -1,8 +1,10 @@
 <script context="module">
+  let token
   export async function preload(page, session) {
     if(!session.user || session.user.role !== 'admin'){
       this.redirect(302, `/`)
     }
+    token = session.token
   }
 </script>
 
@@ -26,7 +28,7 @@
   let userId;
 
   (async () => {
-    const res =  await api('POST', 'user/account', {}, $session.user.token)
+    const res =  await api('POST', 'user/account', {}, token)
     if(res.status >= 400){
       isLoading = false
       messageType = 'warning'
@@ -56,7 +58,7 @@
     };
 
     try {
-      await api('PATCH', 'admin/update-settings', userObject, $session.user.token );
+      await api('PATCH', 'admin/update-settings', userObject, token )
     } catch (err) {
       messageType = 'warning'
       return message = err;

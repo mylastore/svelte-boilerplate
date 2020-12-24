@@ -1,8 +1,10 @@
 <script context="module">
+  let token
   export async function preload(page, session) {
     if (!session.user || session.user.role !== 'admin') {
       this.redirect(302, `/`)
     }
+    token = session.token
   }
 </script>
 
@@ -34,10 +36,9 @@
 
   async function getAllUsers(pageNumber) {
     try {
-      const res = await api('GET', `admin/users/${pageNumber}`, {}, $session.user.token)
+      const res = await api('GET', `admin/users/${pageNumber}`, {}, token)
       if (res.status >= 400) {
         isLoading = false
-        messageType = 'warning'
         throw new Error(res.message)
       }
       isLoading = false

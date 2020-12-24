@@ -9,10 +9,8 @@
   import Message from '../components/Message.svelte'
   import TextInput from '../components/ui/TextInput.svelte'
   import {validateEmail, validatePassword} from '@lib/validation.js'
-  import {stores, goto} from '@sapper/app'
-
-  const {session} = stores()
-  import fetch from "isomorphic-fetch"
+  import {api} from '@lib/api'
+  import {authenticate} from "@lib/auth";
 
   let email = "me@me.com"
   let password = "Password#1"
@@ -25,25 +23,21 @@
   $: formIsValid = emailValid && passwordValid
 
   async function submitForm() {
+    const data = {
+      email,
+      password
+    }
     try {
-      const response = await fetch("/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({email, password}),
-      });
-      const res = await response.json();
-      if (response && res.status >= 400) {
+      const res = await api('POST', 'user/login', data)
+      if (res.status >= 400) {
         messageType = 'warning'
         return message = res.message
       }
-      $session.user = res
+      await authenticate(res)
       message = null
       email = ''
       password = ''
-      return goto(`/profile/${res.username}`)
+      return location.href = `/profile/${res.username}`
     } catch (err) {
       messageType = 'warning'
       return message = err.message

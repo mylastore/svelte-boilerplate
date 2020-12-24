@@ -1,8 +1,12 @@
 <script context="module">
+  let user
+  let token
   export async function preload(page, session) {
     if (!session.user || session.user.role !== 'admin') {
       this.redirect(302, `/`)
     }
+    user = session.user
+    token = session.token
   }
 </script>
 
@@ -15,19 +19,16 @@
   const {session} = stores()
 
   let isLoading = true
-  let user
   let unsubscribe
-  let userId
   let messageType = 'warning'
   let message
   let userCount
 
   (async () => {
     try {
-      const res = await api('GET', 'admin/stats', {}, $session.user.token)
+      const res = await api('GET', 'admin/stats', {}, token)
       if (res.status >= 400) {
         isLoading = false
-        messageType = 'warning'
         throw new Error(res.message)
       }
       isLoading = false

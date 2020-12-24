@@ -3,28 +3,27 @@
   "description": "Sapper, svelte blog app",
   "version": "0.0.1",
   "scripts": {
-    "dev": "sapper dev",
+    "start": "sapper dev",
     "build": "sapper build --legacy",
     "export": "sapper export --legacy",
-    "start": "node __sapper__/build",
+    "live": "node __sapper__/build",
     "production": "NODE_ENV=production pm2 start ecosystem.json",
     "cy:run": "cypress run",
     "cy:open": "cypress open",
     "test": "run-p --race dev cy:run"
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
     "compression": "^1.7.1",
+    "cookie-parser": "^1.4.5",
     "cross-env": "^6.0.3",
     "date-fns": "^2.15.0",
     "dotenv": "^8.2.0",
-    "express-session": "^1.17.1",
     "helmet": "^4.1.0",
     "isomorphic-fetch": "^3.0.0",
     "js-cookie": "^2.2.1",
+    "jsonwebtoken": "^8.5.1",
     "luxon": "^1.25.0",
     "polka": "next",
-    "session-file-store": "^1.4.0",
     "sirv": "^1.0.0"
   },
   "devDependencies": {

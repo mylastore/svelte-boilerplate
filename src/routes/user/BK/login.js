@@ -17,6 +17,8 @@ export async function post(req, res) {
     if (parsed.status >= 400) {
       res.end(JSON.stringify({ status: parsed.status, message: parsed.message }))
     } else {
+      req.session.token = parsed.token
+      delete parsed.token
       req.session.user = parsed;
       res.end(JSON.stringify(parsed));
     }
