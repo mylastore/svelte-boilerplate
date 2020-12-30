@@ -2,7 +2,7 @@
 
 Svelte boilerplate - inspired by [Hackathon Starter](https://hackathon-starter.walcony.com)
 
-Koa API repo can be found here [koa-api](https://github.com/mylastore/koa-api)
+Koa API repo can be found here [koa-api](https://github.com/mylastore/koa-blog-api)
 
 ## Example live app
 Click [here](https://mylastore.com/) to view the app live. 
