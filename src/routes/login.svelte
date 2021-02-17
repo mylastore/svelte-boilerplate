@@ -12,8 +12,8 @@
   import {api} from '@lib/api'
   import {authenticate} from "@lib/auth";
 
-  let email = "me@me.com"
-  let password = "Password#1"
+  let email = ""
+  let password = ""
   let message
   let messageType
   let keyCode
