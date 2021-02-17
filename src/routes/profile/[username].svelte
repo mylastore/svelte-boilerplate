@@ -7,7 +7,6 @@
     }
     user = session.user
     token = session.token
-
   }
 </script>
 

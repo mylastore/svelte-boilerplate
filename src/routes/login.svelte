@@ -67,15 +67,13 @@
     <div class="column is-8 is-offset-2">
       <article class="message is-info">
         <div class="message-header">
-          <p>Test Users</p>
+          <p>Test User Creation</p>
         </div>
         <div class="message-body">
-          <h3><strong>Admin:</strong> me@me.com Password#1</h3>
-          <h3><strong>Customer:</strong> me1@me.com Password#1</h3>
+          Go ahead create a user, test the app and after delete your account. We care about your privacy and no
+          information will be retain after the account is deleted.
         </div>
       </article>
-
-
       <br>
       <div class="card la-card">
         <div class="card-content clearfixed">
