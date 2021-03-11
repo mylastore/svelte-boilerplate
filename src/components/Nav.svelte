@@ -2,7 +2,7 @@
   import {api} from '@lib/api'
   import {onMount} from 'svelte'
   import {logout} from '@lib/auth'
-  import {goto, stores} from '@sapper/app'
+  import {stores} from '@sapper/app'
 
   export let segment
 
@@ -12,12 +12,7 @@
   let links = []
 
   const {session} = stores()
-
   const APP_NAME = process.env.APP_NAME
-
-  function toggleNav() {
-    isActive = !isActive
-  }
 
   async function logOut() {
     const res = await api('POST', 'user/logout')
@@ -27,11 +22,22 @@
     }
   }
 
+  function toggleNav(){
+    isActive = !isActive
+  }
+
   onMount(() => {
-    document.querySelectorAll('.navbar-item')
-      .forEach(link => link.addEventListener('click', () => {
-        toggleNav()
-      }))
+    function callback(e) {
+      window.e || e
+      if (e.target.tagName !== 'A') return
+      isActive = !isActive
+    }
+
+    if (document.addEventListener) {
+      document.addEventListener('click', callback, false)
+    } else {
+      document.attachEvent('onclick', callback)
+    }
   })
 
 </script>

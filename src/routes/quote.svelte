@@ -64,7 +64,7 @@
       <div class="column is-10 is-offset-1">
         <div class="card">
           <div class="card-content is-clearfix">
-            <h1 class="lg">Tell us about your project</h1>
+            <h1 class="lg">How can we help?</h1>
             <form id="my-form">
               <TextInput
                   id="name"

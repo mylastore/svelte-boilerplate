@@ -37,18 +37,15 @@
   let role = ''
   let createdAt = ''
   let avatar = ''
-
   let unsubscribe
   let message
   let messageType = 'warning'
   let isLoading = true
   let serverError = false
-
-  let newUsername = null;
+  let newUsername = null
 
   $: emailValid = validateEmail(email)
   $: formIsValid = emailValid
-
   $: passwordValid = validatePassword(password)
   $: passwordConfirmValid = password === passwordConfirmation
   $: passwordFormIsValid = passwordValid && passwordConfirmValid
@@ -72,6 +69,7 @@
         name = res.name
         username = res.username
         avatar = res.avatar
+        role = res.role
         createdAt = timeAgo(res.createdAt)
       } catch (err) {
         isLoading = false
@@ -107,7 +105,7 @@
       }
       const res = await api('PATCH', `user/account/${user.username}`, userObject, token)
       if (res.status >= 400) {
-        new Error(res.message)
+        throw new Error(res.message)
       }
       await authenticate(res)
       messageType = 'success'
